@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 plugins {
     id("com.android.library")
     id("kotlin-android")
+    `maven-publish`
 }
 
 android {
