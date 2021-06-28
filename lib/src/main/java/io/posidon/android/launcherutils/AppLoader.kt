@@ -126,16 +126,16 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
                     context,
                     profile
                 )
-                collection.add(app)
+                collection.add(context, app)
             }
         }
-        collection.finalize()
+        collection.finalize(context)
         onEnd(collection)
     }
 
     interface AppCollection <APP> {
-        fun add(app: APP)
-        fun finalize()
+        fun add(context: Context, app: APP)
+        fun finalize(context: Context)
     }
 
     private fun loadApp(
