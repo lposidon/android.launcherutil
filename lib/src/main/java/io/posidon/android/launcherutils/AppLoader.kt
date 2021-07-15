@@ -42,7 +42,7 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
             isAntiAlias = true
             xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
         }
-        var iconPackInfo: LauncherIcons.IconPackInfo? = null
+        var iconPackInfo: IconTheming.IconPackInfo? = null
         var themeRes: Resources? = null
         var back: Bitmap? = null
         var mask: Bitmap? = null
@@ -56,7 +56,7 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
                 try {
                     themeRes = packageManager.getResourcesForApplication(iconPackPackage)
                     val themeRes = themeRes!!
-                    iconPackInfo = LauncherIcons.getIconPackInfo(themeRes, iconPackPackage)
+                    iconPackInfo = IconTheming.getIconPackInfo(themeRes, iconPackPackage)
                     val iconPackInfo = iconPackInfo!!
                     if (iconPackInfo.iconBack != null) {
                         val intresiconback = themeRes.getIdentifier(
@@ -140,7 +140,7 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
 
     private fun loadApp(
         appListItem: LauncherActivityInfo,
-        iconPackInfo: LauncherIcons.IconPackInfo?,
+        iconPackInfo: IconTheming.IconPackInfo?,
         themeRes: Resources?,
         iconPackPackage: String?,
         areUnthemedIconsChanged: Boolean,

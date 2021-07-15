@@ -1,5 +1,8 @@
 package io.posidon.android.launcherutils
 
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.content.res.Resources
 import android.content.res.XmlResourceParser
 import android.graphics.Matrix
@@ -14,7 +17,15 @@ import java.util.*
 import kotlin.collections.HashMap
 import kotlin.math.min
 
-object LauncherIcons {
+object IconTheming {
+
+    fun getAvailableIconPacks(packageManager: PackageManager): MutableList<ResolveInfo> {
+        return packageManager.queryIntentActivities(
+            Intent(Intent.ACTION_MAIN)
+                .addCategory("com.anddoes.launcher.THEME"),
+            0
+        )
+    }
 
     class IconPackInfo {
         var scaleFactor = 1f
