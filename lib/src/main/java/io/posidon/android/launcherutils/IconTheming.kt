@@ -1,16 +1,17 @@
 package io.posidon.android.launcherutils
 
 import android.content.Intent
+import android.content.pm.LauncherActivityInfo
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.content.res.Resources
 import android.content.res.XmlResourceParser
-import android.graphics.Matrix
-import android.graphics.Path
-import android.graphics.RectF
+import android.graphics.*
 import android.graphics.drawable.AdaptiveIconDrawable
+import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.core.content.res.ResourcesCompat
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.util.*
@@ -27,16 +28,41 @@ object IconTheming {
         )
     }
 
-    class IconPackInfo {
+    class IconPackInfo(
+        val res: Resources,
+        val iconPackPackageName: String
+    ) {
         var scaleFactor = 1f
         val iconResourceNames = HashMap<String, String>()
-        var iconBack: String? = null
-        var iconMask: String? = null
-        var iconFront: String? = null
+        var back: Bitmap? = null
+        var mask: Bitmap? = null
+        var front: Bitmap? = null
+        var areUnthemedIconsChanged: Boolean = false
+
+        fun getDrawable(appListItem: LauncherActivityInfo): Drawable? {
+            val iconResource =
+                iconResourceNames["ComponentInfo{${appListItem.applicationInfo.packageName}/${appListItem.name}}"]
+                    ?: return null
+            val intres = res.getIdentifier(
+                iconResource,
+                "drawable",
+                iconPackPackageName
+            )
+            if (intres == 0) return null
+            return try {
+                ResourcesCompat.getDrawable(res, intres, null)
+            } catch (e: Resources.NotFoundException) {
+                null
+            }
+        }
     }
 
-    fun getIconPackInfo(res: Resources, iconPackPackageName: String): IconPackInfo {
-        val info = IconPackInfo()
+    fun getIconPackInfo(
+        res: Resources,
+        iconPackPackageName: String,
+        uniformOptions: BitmapFactory.Options
+    ): IconPackInfo {
+        val info = IconPackInfo(res, iconPackPackageName)
         try {
             val n = res.getIdentifier("appfilter", "xml", iconPackPackageName)
             if (n != 0) {
@@ -51,9 +77,27 @@ object IconTheming {
                                 "item" -> {
                                     info.iconResourceNames[xrp.getAttributeValue(0)] = xrp.getAttributeValue(1)
                                 }
-                                "iconback" -> info.iconBack = xrp.getAttributeValue(0)
-                                "iconmask" -> info.iconMask = xrp.getAttributeValue(0)
-                                "iconupon" -> info.iconFront = xrp.getAttributeValue(0)
+                                "iconback" -> info.back = loadIconMod(
+                                    xrp.getAttributeValue(0),
+                                    res,
+                                    iconPackPackageName,
+                                    uniformOptions,
+                                    info
+                                )
+                                "iconmask" -> info.mask = loadIconMod(
+                                    xrp.getAttributeValue(0),
+                                    res,
+                                    iconPackPackageName,
+                                    uniformOptions,
+                                    info
+                                )
+                                "iconupon" -> info.front = loadIconMod(
+                                    xrp.getAttributeValue(0),
+                                    res,
+                                    iconPackPackageName,
+                                    uniformOptions,
+                                    info
+                                )
                             }
                         } catch (e: Exception) {}
                     }
@@ -75,9 +119,27 @@ object IconTheming {
                                 "item" -> {
                                     info.iconResourceNames[xpp.getAttributeValue(0)] = xpp.getAttributeValue(1)
                                 }
-                                "iconback" -> info.iconBack = xpp.getAttributeValue(0)
-                                "iconmask" -> info.iconMask = xpp.getAttributeValue(0)
-                                "iconupon" -> info.iconFront = xpp.getAttributeValue(0)
+                                "iconback" -> info.back = loadIconMod(
+                                    xpp.getAttributeValue(0),
+                                    res,
+                                    iconPackPackageName,
+                                    uniformOptions,
+                                    info
+                                )
+                                "iconmask" -> info.mask = loadIconMod(
+                                    xpp.getAttributeValue(0),
+                                    res,
+                                    iconPackPackageName,
+                                    uniformOptions,
+                                    info
+                                )
+                                "iconupon" -> info.front = loadIconMod(
+                                    xpp.getAttributeValue(0),
+                                    res,
+                                    iconPackPackageName,
+                                    uniformOptions,
+                                    info
+                                )
                             }
                         } catch (e: Exception) {}
                     }
@@ -86,6 +148,19 @@ object IconTheming {
             }
         } catch (ignore: Exception) {}
         return info
+    }
+
+    private fun loadIconMod(name: String, res: Resources, iconPackPackageName: String, uniformOptions: BitmapFactory.Options, info: IconPackInfo): Bitmap? {
+        val i = res.getIdentifier(
+            name,
+            "drawable",
+            iconPackPackageName
+        )
+        if (i != 0) {
+            info.areUnthemedIconsChanged = true
+            return BitmapFactory.decodeResource(res, i, uniformOptions)
+        }
+        return null
     }
 
     fun getResourceNames(res: Resources, iconPack: String?): ArrayList<String> {
