@@ -173,7 +173,7 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
                 }
             }
             icon
-        } ?: ColorDrawable()
+        } ?: appListItem.getIcon(0) ?: ColorDrawable()
         return appConstructor(packageName, name, profile, label, icon)
     }
 }
