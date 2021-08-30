@@ -1,7 +1,6 @@
 package io.posidon.android.launcherutils
 
 import android.content.Intent
-import android.content.pm.LauncherActivityInfo
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.content.res.Resources
@@ -11,7 +10,6 @@ import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.core.content.res.ResourcesCompat
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.util.*
@@ -20,7 +18,7 @@ import kotlin.math.min
 
 object IconTheming {
 
-    fun getAvailableIconPacks(packageManager: PackageManager): MutableList<ResolveInfo> {
+    inline fun getAvailableIconPacks(packageManager: PackageManager): MutableList<ResolveInfo> {
         return packageManager.queryIntentActivities(
             Intent(Intent.ACTION_MAIN)
                 .addCategory("com.anddoes.launcher.THEME"),
@@ -39,9 +37,9 @@ object IconTheming {
         var front: Bitmap? = null
         var areUnthemedIconsChanged: Boolean = false
 
-        fun getDrawable(appListItem: LauncherActivityInfo): Drawable? {
+        fun getDrawable(packageName: String, name: String): Drawable? {
             val iconResource =
-                iconResourceNames["ComponentInfo{${appListItem.applicationInfo.packageName}/${appListItem.name}}"]
+                iconResourceNames["ComponentInfo{$packageName/$name}"]
                     ?: return null
             val intres = res.getIdentifier(
                 iconResource,
@@ -50,7 +48,7 @@ object IconTheming {
             )
             if (intres == 0) return null
             return try {
-                ResourcesCompat.getDrawable(res, intres, null)
+                res.getDrawable(intres, null)
             } catch (e: Resources.NotFoundException) {
                 null
             }

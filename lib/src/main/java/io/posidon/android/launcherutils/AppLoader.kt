@@ -108,7 +108,7 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
         }
 
         val icon: Drawable = iconPacks.firstNotNullOfOrNull { iconPackInfo ->
-            iconPackInfo.getDrawable(appListItem)
+            iconPackInfo.getDrawable(appListItem.applicationInfo.packageName, appListItem.name)
         } ?: iconPacks.firstNotNullOfOrNull { iconPackInfo ->
             var icon = appListItem.getIcon(0)
             if (iconPackInfo.areUnthemedIconsChanged) {
