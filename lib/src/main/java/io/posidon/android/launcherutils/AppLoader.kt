@@ -24,7 +24,7 @@ import kotlin.concurrent.thread
  * around the loader
  */
 class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
-    val appConstructor: (packageName: String, name: String, profile: UserHandle, label: String, icon: Drawable) -> APP,
+    val appConstructor: (packageName: String, name: String, profile: UserHandle, label: String, icon: Drawable, extra: ExtraAppInfo) -> APP,
     val collectionConstructor: (appCount: Int) -> APPCollection
 ) {
 
@@ -174,6 +174,21 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
             }
             icon
         } ?: appListItem.getIcon(0) ?: ColorDrawable()
-        return appConstructor(packageName, name, profile, label, icon)
+        return appConstructor(
+            packageName,
+            name,
+            profile,
+            context.packageManager.getUserBadgedLabel(label, profile).toString(),
+            context.packageManager.getUserBadgedIcon(icon, profile),
+            ExtraAppInfo(
+                banner = appListItem.applicationInfo.loadBanner(context.packageManager),
+                logo = appListItem.applicationInfo.loadLogo(context.packageManager),
+            )
+        )
     }
+
+    class ExtraAppInfo(
+        val banner: Drawable?,
+        val logo: Drawable?
+    )
 }
