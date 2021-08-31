@@ -26,7 +26,6 @@ android {
 }
 
 dependencies {
-    implementation("io.posidon:android.convenienceLib:master-SNAPSHOT")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:${getKotlinPluginVersion()}")
     implementation("androidx.annotation:annotation:1.2.0")
 }

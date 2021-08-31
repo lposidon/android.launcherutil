@@ -9,8 +9,6 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.UserHandle
 import android.os.UserManager
-import posidon.android.conveniencelib.Graphics
-import posidon.android.conveniencelib.dp
 import kotlin.concurrent.thread
 
 /**
@@ -28,8 +26,8 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
     val collectionConstructor: (appCount: Int) -> APPCollection
 ) {
 
-    inline fun async(context: Context, iconPackPackages: Array<String> = emptyArray(), noinline onEnd: (apps: APPCollection) -> Unit) { thread(name = "AppLoader thread", isDaemon = true) { sync(context, iconPackPackages, onEnd) } }
-    fun sync(context: Context, iconPackPackages: Array<String> = emptyArray(), onEnd: (apps: APPCollection) -> Unit) {
+    inline fun async(context: Context, iconPackPackages: Array<String> = emptyArray(), iconSize: Int = (context.resources.displayMetrics.density * 128f).toInt(), noinline onEnd: (apps: APPCollection) -> Unit) { thread(name = "AppLoader thread", isDaemon = true) { sync(context, iconPackPackages, iconSize, onEnd) } }
+    fun sync(context: Context, iconPackPackages: Array<String> = emptyArray(), iconSize: Int = (context.resources.displayMetrics.density * 128f).toInt(), onEnd: (apps: APPCollection) -> Unit) {
 
         val p = Paint(Paint.FILTER_BITMAP_FLAG).apply {
             isAntiAlias = true
@@ -41,7 +39,6 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
         val uniformOptions = BitmapFactory.Options().apply {
             inScaled = false
         }
-        val iconSize = context.dp(128).toInt()
 
         val packageManager = context.packageManager
 
@@ -124,20 +121,19 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
                         Bitmap.createBitmap(iconSize, iconSize, Bitmap.Config.ARGB_8888)
                     Canvas(scaledBitmap).run {
                         if (iconPackInfo.back != null) {
+                            val b = iconPackInfo.back!!
                             drawBitmap(
-                                iconPackInfo.back!!,
-                                Graphics.getResizedMatrix(iconPackInfo.back!!, iconSize, iconSize),
+                                b,
+                                Rect(0, 0, b.width, b.height),
+                                Rect(0, 0, iconSize, iconSize),
                                 p
                             )
                         }
                         val scaledOrig =
                             Bitmap.createBitmap(iconSize, iconSize, Bitmap.Config.ARGB_8888)
                         Canvas(scaledOrig).run {
-                            orig = Graphics.getResizedBitmap(
-                                orig,
-                                (iconSize * iconPackInfo.scaleFactor).toInt(),
-                                (iconSize * iconPackInfo.scaleFactor).toInt()
-                            )
+                            val s = (iconSize * iconPackInfo.scaleFactor).toInt()
+                            orig = Bitmap.createScaledBitmap(orig, s, s, true)
                             drawBitmap(
                                 orig,
                                 scaledOrig.width - orig.width / 2f - scaledOrig.width / 2f,
@@ -145,23 +141,27 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
                                 p
                             )
                             if (iconPackInfo.mask != null) {
+                                val b = iconPackInfo.mask!!
                                 drawBitmap(
-                                    iconPackInfo.mask!!,
-                                    Graphics.getResizedMatrix(iconPackInfo.mask!!, iconSize, iconSize),
+                                    b,
+                                    Rect(0, 0, b.width, b.height),
+                                    Rect(0, 0, iconSize, iconSize),
                                     maskp
                                 )
                             }
                         }
                         drawBitmap(
-                            Graphics.getResizedBitmap(scaledOrig, iconSize, iconSize),
+                            Bitmap.createScaledBitmap(scaledOrig, iconSize, iconSize, true),
                             0f,
                             0f,
                             p
                         )
                         if (iconPackInfo.front != null) {
+                            val b = iconPackInfo.front!!
                             drawBitmap(
-                                iconPackInfo.front!!,
-                                Graphics.getResizedMatrix(iconPackInfo.front!!, iconSize, iconSize),
+                                b,
+                                Rect(0, 0, b.width, b.height),
+                                Rect(0, 0, iconSize, iconSize),
                                 p
                             )
                         }
