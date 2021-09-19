@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">LauncherUtils</string>
+    <string name="choose_icon_pack">Choose icon pack</string>
 </resources>

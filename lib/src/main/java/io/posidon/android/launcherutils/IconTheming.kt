@@ -18,10 +18,12 @@ import kotlin.math.min
 
 object IconTheming {
 
+    const val ICON_PACK_CATEGORY = "com.anddoes.launcher.THEME"
+
     inline fun getAvailableIconPacks(packageManager: PackageManager): MutableList<ResolveInfo> {
         return packageManager.queryIntentActivities(
             Intent(Intent.ACTION_MAIN)
-                .addCategory("com.anddoes.launcher.THEME"),
+                .addCategory(ICON_PACK_CATEGORY),
             0
         )
     }
@@ -32,15 +34,18 @@ object IconTheming {
     ) {
         var scaleFactor = 1f
         val iconResourceNames = HashMap<String, String>()
+        val calendarPrefixes = HashMap<String, String>()
         var back: Bitmap? = null
         var mask: Bitmap? = null
         var front: Bitmap? = null
         var areUnthemedIconsChanged: Boolean = false
 
         fun getDrawable(packageName: String, name: String): Drawable? {
-            val iconResource =
-                iconResourceNames["ComponentInfo{$packageName/$name}"]
-                    ?: return null
+            val key = "ComponentInfo{$packageName/$name}"
+            val iconResource = calendarPrefixes[key]
+                ?.let { it + Calendar.getInstance()[Calendar.DAY_OF_MONTH] }
+                ?: iconResourceNames[key]
+                ?: return null
             val intres = res.getIdentifier(
                 iconResource,
                 "drawable",
@@ -63,88 +68,62 @@ object IconTheming {
         val info = IconPackInfo(res, iconPackPackageName)
         try {
             val n = res.getIdentifier("appfilter", "xml", iconPackPackageName)
-            if (n != 0) {
-                val xrp = res.getXml(n)
-                while (xrp.eventType != XmlResourceParser.END_DOCUMENT) {
-                    if (xrp.eventType == 2) {
-                        try {
-                            when (xrp.name) {
-                                "scale" -> {
-                                    info.scaleFactor = xrp.getAttributeValue(0).toFloat()
-                                }
-                                "item" -> {
-                                    info.iconResourceNames[xrp.getAttributeValue(0)] = xrp.getAttributeValue(1)
-                                }
-                                "iconback" -> info.back = loadIconMod(
-                                    xrp.getAttributeValue(0),
-                                    res,
-                                    iconPackPackageName,
-                                    uniformOptions,
-                                    info
-                                )
-                                "iconmask" -> info.mask = loadIconMod(
-                                    xrp.getAttributeValue(0),
-                                    res,
-                                    iconPackPackageName,
-                                    uniformOptions,
-                                    info
-                                )
-                                "iconupon" -> info.front = loadIconMod(
-                                    xrp.getAttributeValue(0),
-                                    res,
-                                    iconPackPackageName,
-                                    uniformOptions,
-                                    info
-                                )
-                            }
-                        } catch (e: Exception) {}
-                    }
-                    xrp.next()
-                }
+            val x = if (n != 0) {
+                res.getXml(n)
             } else {
                 val factory = XmlPullParserFactory.newInstance()
                 factory.isValidating = false
                 val xpp = factory.newPullParser()
                 val raw = res.assets.open("appfilter.xml")
                 xpp.setInput(raw, null)
-                while (xpp.eventType != XmlPullParser.END_DOCUMENT) {
-                    if (xpp.eventType == 2) {
-                        try {
-                            when (xpp.name) {
-                                "scale" -> {
-                                    info.scaleFactor = xpp.getAttributeValue(0).toFloat()
-                                }
-                                "item" -> {
-                                    info.iconResourceNames[xpp.getAttributeValue(0)] = xpp.getAttributeValue(1)
-                                }
-                                "iconback" -> info.back = loadIconMod(
-                                    xpp.getAttributeValue(0),
-                                    res,
-                                    iconPackPackageName,
-                                    uniformOptions,
-                                    info
-                                )
-                                "iconmask" -> info.mask = loadIconMod(
-                                    xpp.getAttributeValue(0),
-                                    res,
-                                    iconPackPackageName,
-                                    uniformOptions,
-                                    info
-                                )
-                                "iconupon" -> info.front = loadIconMod(
-                                    xpp.getAttributeValue(0),
-                                    res,
-                                    iconPackPackageName,
-                                    uniformOptions,
-                                    info
-                                )
-                            }
-                        } catch (e: Exception) {}
-                    }
-                    xpp.next()
-                }
+                xpp
             }
-        } catch (ignore: Exception) {}
+            while (x.eventType != XmlResourceParser.END_DOCUMENT) {
+                if (x.eventType == 2) {
+                    try {
+                        when (x.name) {
+                            "scale" -> {
+                                info.scaleFactor = x.getAttributeValue(0).toFloat()
+                            }
+                            "item" -> {
+                                val key = x.getAttributeValue(null, "component")
+                                val value = x.getAttributeValue(null, "drawable")
+                                if (key != null && value != null)
+                                    info.iconResourceNames[key] = value
+                            }
+                            "calendar" -> {
+                                val key = x.getAttributeValue(null, "component")
+                                val value = x.getAttributeValue(null, "prefix")
+                                if (key != null && value != null)
+                                    info.calendarPrefixes[key] = value
+                            }
+                            "iconback" -> info.back = loadIconMod(
+                                x.getAttributeValue(0),
+                                res,
+                                iconPackPackageName,
+                                uniformOptions,
+                                info
+                            )
+                            "iconmask" -> info.mask = loadIconMod(
+                                x.getAttributeValue(0),
+                                res,
+                                iconPackPackageName,
+                                uniformOptions,
+                                info
+                            )
+                            "iconupon" -> info.front = loadIconMod(
+                                x.getAttributeValue(0),
+                                res,
+                                iconPackPackageName,
+                                uniformOptions,
+                                info
+                            )
+                        }
+                    } catch (e: Exception) {}
+                }
+                x.next()
+            }
+        } catch (e: Exception) { e.printStackTrace() }
         return info
     }
 

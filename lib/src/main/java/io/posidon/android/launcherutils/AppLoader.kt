@@ -47,7 +47,7 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
             try {
                 val themeRes = packageManager.getResourcesForApplication(iconPackPackage)
                 iconPackInfo = IconTheming.getIconPackInfo(themeRes, iconPackPackage, uniformOptions)
-            } catch (e: Exception) {}
+            } catch (e: Exception) { e.printStackTrace() }
             iconPackInfo
         }
 
