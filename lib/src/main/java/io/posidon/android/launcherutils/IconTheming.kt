@@ -35,6 +35,7 @@ object IconTheming {
         var scaleFactor = 1f
         val iconResourceNames = HashMap<String, String>()
         val calendarPrefixes = HashMap<String, String>()
+        val backgrounds = HashMap<String, String>()
         var back: Bitmap? = null
         var mask: Bitmap? = null
         var front: Bitmap? = null
@@ -46,14 +47,31 @@ object IconTheming {
                 ?.let { it + Calendar.getInstance()[Calendar.DAY_OF_MONTH] }
                 ?: iconResourceNames[key]
                 ?: return null
-            val intres = res.getIdentifier(
+            val drawableRes = res.getIdentifier(
                 iconResource,
                 "drawable",
                 iconPackPackageName
             )
-            if (intres == 0) return null
+            if (drawableRes == 0) return null
             return try {
-                res.getDrawable(intres, null)
+                res.getDrawable(drawableRes, null)
+            } catch (e: Resources.NotFoundException) {
+                null
+            }
+        }
+
+        fun getBackground(packageName: String, name: String): Drawable? {
+            val key = "ComponentInfo{$packageName/$name}"
+            val background = backgrounds[key] ?: return null
+
+            val backgroundRes = res.getIdentifier(
+                background,
+                "drawable",
+                iconPackPackageName
+            )
+            if (backgroundRes == 0) return null
+            return try {
+                res.getDrawable(backgroundRes, null)
             } catch (e: Resources.NotFoundException) {
                 null
             }
@@ -88,14 +106,22 @@ object IconTheming {
                             "item" -> {
                                 val key = x.getAttributeValue(null, "component")
                                 val value = x.getAttributeValue(null, "drawable")
-                                if (key != null && value != null)
+                                val background = x.getAttributeValue(null, "background")
+                                if (key != null && value != null) {
                                     info.iconResourceNames[key] = value
+                                    if (background != null)
+                                        info.backgrounds[key] = background
+                                }
                             }
                             "calendar" -> {
                                 val key = x.getAttributeValue(null, "component")
                                 val value = x.getAttributeValue(null, "prefix")
-                                if (key != null && value != null)
+                                val background = x.getAttributeValue(null, "background")
+                                if (key != null && value != null) {
                                     info.calendarPrefixes[key] = value
+                                    if (background != null)
+                                        info.backgrounds[key] = background
+                                }
                             }
                             "iconback" -> info.back = loadIconMod(
                                 x.getAttributeValue(0),

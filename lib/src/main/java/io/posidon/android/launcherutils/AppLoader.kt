@@ -104,8 +104,12 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
             else it.toString()
         }
 
+        var background: Drawable? = null
+
         val icon: Drawable = iconPacks.firstNotNullOfOrNull { iconPackInfo ->
-            iconPackInfo.getDrawable(appListItem.applicationInfo.packageName, appListItem.name)
+            iconPackInfo.getDrawable(appListItem.applicationInfo.packageName, appListItem.name)?.also {
+                background = iconPackInfo.getBackground(appListItem.applicationInfo.packageName, appListItem.name)
+            }
         } ?: iconPacks.firstNotNullOfOrNull { iconPackInfo ->
             var icon = appListItem.getIcon(0)
             if (iconPackInfo.areUnthemedIconsChanged) {
@@ -183,12 +187,14 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
             ExtraAppInfo(
                 banner = appListItem.applicationInfo.loadBanner(context.packageManager),
                 logo = appListItem.applicationInfo.loadLogo(context.packageManager),
+                background = background
             )
         )
     }
 
     class ExtraAppInfo(
         val banner: Drawable?,
-        val logo: Drawable?
+        val logo: Drawable?,
+        val background: Drawable?,
     )
 }
