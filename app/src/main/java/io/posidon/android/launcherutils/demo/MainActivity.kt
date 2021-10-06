@@ -12,7 +12,7 @@ import io.posidon.android.launcherutils.IconTheming
 class MainActivity : AppCompatActivity() {
 
     val appsAdapter = AppsAdapter()
-    val appLoader = AppLoader(::App, ::AppCollection)
+    val appLoader = AppLoader(::AppCollection)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
