@@ -21,8 +21,7 @@ import kotlin.concurrent.thread
  * that you don't have to build your project
  * around the loader
  */
-class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
-    val appConstructor: (packageName: String, name: String, profile: UserHandle, label: String, icon: Drawable, extra: ExtraAppInfo) -> APP,
+class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_ICON_DATA>> (
     val collectionConstructor: (appCount: Int) -> APPCollection
 ) {
 
@@ -64,37 +63,37 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
         val collection = collectionConstructor(appCount)
 
         for ((appList, profile) in appLists) {
-            for (i in appList.indices) {
-                val app = loadApp(
-                    appList[i],
-                    iconPacks,
-                    iconSize,
-                    p,
-                    maskp,
-                    context,
-                    profile
-                )
-                collection.add(context, app)
-            }
+            for (i in appList.indices) addApp(
+                collection,
+                appList[i],
+                iconPacks,
+                iconSize,
+                p,
+                maskp,
+                context,
+                profile
+            )
         }
         collection.finalize(context)
         onEnd(collection)
     }
 
-    interface AppCollection <APP> {
-        fun add(context: Context, app: APP)
+    interface AppCollection <EXTRA_ICON_DATA> {
         fun finalize(context: Context)
+        fun addApp(context: Context, packageName: String, name: String, profile: UserHandle, label: String, icon: Drawable, extra: ExtraAppInfo<EXTRA_ICON_DATA>)
+        fun modifyIcon(icon: Drawable, expandableBackground: Drawable?): Pair<Drawable, EXTRA_ICON_DATA>
     }
 
-    private fun loadApp(
+    private fun addApp(
+        collection: APPCollection,
         appListItem: LauncherActivityInfo,
         iconPacks: List<IconTheming.IconPackInfo>,
         iconSize: Int,
         p: Paint,
         maskp: Paint,
         context: Context,
-        profile: UserHandle
-    ): APP {
+        profile: UserHandle,
+    ) {
 
         val packageName = appListItem.applicationInfo.packageName
         val name = appListItem.name
@@ -178,23 +177,27 @@ class AppLoader <APP, APPCollection : AppLoader.AppCollection<APP>> (
             }
             icon
         } ?: appListItem.getIcon(0) ?: ColorDrawable()
-        return appConstructor(
+        val (modifiedIcon, extraIconData) = collection.modifyIcon(icon, background)
+        collection.addApp(
+            context,
             packageName,
             name,
             profile,
             context.packageManager.getUserBadgedLabel(label, profile).toString(),
-            context.packageManager.getUserBadgedIcon(icon, profile),
+            context.packageManager.getUserBadgedIcon(modifiedIcon, profile),
             ExtraAppInfo(
                 banner = appListItem.applicationInfo.loadBanner(context.packageManager),
                 logo = appListItem.applicationInfo.loadLogo(context.packageManager),
-                background = background
+                background = background,
+                extraIconData = extraIconData,
             )
         )
     }
 
-    class ExtraAppInfo(
+    class ExtraAppInfo <EXTRA_ICON_DATA> (
         val banner: Drawable?,
         val logo: Drawable?,
         val background: Drawable?,
+        val extraIconData: EXTRA_ICON_DATA,
     )
 }
