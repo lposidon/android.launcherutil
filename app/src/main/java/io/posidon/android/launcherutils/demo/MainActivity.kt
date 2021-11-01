@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.posidon.android.launcherutils.AppLoader
+import io.posidon.android.launcherutils.IconConfig
 import io.posidon.android.launcherutils.IconTheming
 
 class MainActivity : AppCompatActivity() {
@@ -36,7 +37,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun loadApps(iconPack: String? = null) {
-        appLoader.async(this, iconPackPackages = iconPack?.let { arrayOf(it) } ?: emptyArray()) {
+        val iconConfig = IconConfig(
+            size = (resources.displayMetrics.density * 128f).toInt(),
+            density = resources.configuration.densityDpi,
+            packPackages = iconPack?.let { arrayOf(it) } ?: emptyArray(),
+        )
+
+        appLoader.async(this, iconConfig) {
             runOnUiThread {
                 appsAdapter.update(it.list)
             }

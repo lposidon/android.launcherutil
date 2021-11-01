@@ -25,8 +25,17 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
     val collectionConstructor: (appCount: Int) -> APPCollection
 ) {
 
-    inline fun async(context: Context, iconPackPackages: Array<String> = emptyArray(), iconSize: Int = (context.resources.displayMetrics.density * 128f).toInt(), noinline onEnd: (apps: APPCollection) -> Unit) { thread(name = "AppLoader thread", isDaemon = true) { sync(context, iconPackPackages, iconSize, onEnd) } }
-    fun sync(context: Context, iconPackPackages: Array<String> = emptyArray(), iconSize: Int = (context.resources.displayMetrics.density * 128f).toInt(), onEnd: (apps: APPCollection) -> Unit) {
+    inline fun async(
+        context: Context,
+        iconConfig: IconConfig,
+        noinline onEnd: (apps: APPCollection) -> Unit
+    ) { thread(name = "AppLoader thread", isDaemon = true) { sync(context, iconConfig, onEnd) } }
+
+    fun sync(
+        context: Context,
+        iconConfig: IconConfig,
+        onEnd: (apps: APPCollection) -> Unit
+    ) {
 
         val p = Paint(Paint.FILTER_BITMAP_FLAG).apply {
             isAntiAlias = true
@@ -41,7 +50,7 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
 
         val packageManager = context.packageManager
 
-        val iconPacks = iconPackPackages.mapNotNull { iconPackPackage ->
+        val iconPacks = iconConfig.packPackages.mapNotNull { iconPackPackage ->
             var iconPackInfo: IconTheming.IconPackInfo? = null
             try {
                 val themeRes = packageManager.getResourcesForApplication(iconPackPackage)
@@ -67,7 +76,7 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
                 collection,
                 appList[i],
                 iconPacks,
-                iconSize,
+                iconConfig,
                 p,
                 maskp,
                 context,
@@ -88,7 +97,7 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
         collection: APPCollection,
         appListItem: LauncherActivityInfo,
         iconPacks: List<IconTheming.IconPackInfo>,
-        iconSize: Int,
+        iconConfig: IconConfig,
         p: Paint,
         maskp: Paint,
         context: Context,
@@ -110,7 +119,7 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
                 background = iconPackInfo.getBackground(appListItem.applicationInfo.packageName, appListItem.name)
             }
         } ?: iconPacks.firstNotNullOfOrNull { iconPackInfo ->
-            var icon = appListItem.getIcon(0)
+            var icon = appListItem.getIcon(iconConfig.density)
             if (iconPackInfo.areUnthemedIconsChanged) {
                 try {
                     var orig = Bitmap.createBitmap(
@@ -121,21 +130,21 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
                     icon.setBounds(0, 0, icon.intrinsicWidth, icon.intrinsicHeight)
                     icon.draw(Canvas(orig))
                     val scaledBitmap =
-                        Bitmap.createBitmap(iconSize, iconSize, Bitmap.Config.ARGB_8888)
+                        Bitmap.createBitmap(iconConfig.size, iconConfig.size, Bitmap.Config.ARGB_8888)
                     Canvas(scaledBitmap).run {
                         if (iconPackInfo.back != null) {
                             val b = iconPackInfo.back!!
                             drawBitmap(
                                 b,
                                 Rect(0, 0, b.width, b.height),
-                                Rect(0, 0, iconSize, iconSize),
+                                Rect(0, 0, iconConfig.size, iconConfig.size),
                                 p
                             )
                         }
                         val scaledOrig =
-                            Bitmap.createBitmap(iconSize, iconSize, Bitmap.Config.ARGB_8888)
+                            Bitmap.createBitmap(iconConfig.size, iconConfig.size, Bitmap.Config.ARGB_8888)
                         Canvas(scaledOrig).run {
-                            val s = (iconSize * iconPackInfo.scaleFactor).toInt()
+                            val s = (iconConfig.size * iconPackInfo.scaleFactor).toInt()
                             orig = Bitmap.createScaledBitmap(orig, s, s, true)
                             drawBitmap(
                                 orig,
@@ -148,13 +157,13 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
                                 drawBitmap(
                                     b,
                                     Rect(0, 0, b.width, b.height),
-                                    Rect(0, 0, iconSize, iconSize),
+                                    Rect(0, 0, iconConfig.size, iconConfig.size),
                                     maskp
                                 )
                             }
                         }
                         drawBitmap(
-                            Bitmap.createScaledBitmap(scaledOrig, iconSize, iconSize, true),
+                            Bitmap.createScaledBitmap(scaledOrig, iconConfig.size, iconConfig.size, true),
                             0f,
                             0f,
                             p
@@ -164,7 +173,7 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
                             drawBitmap(
                                 b,
                                 Rect(0, 0, b.width, b.height),
-                                Rect(0, 0, iconSize, iconSize),
+                                Rect(0, 0, iconConfig.size, iconConfig.size),
                                 p
                             )
                         }
@@ -176,7 +185,7 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
                 }
             }
             icon
-        } ?: appListItem.getIcon(0) ?: ColorDrawable()
+        } ?: appListItem.getIcon(iconConfig.density) ?: ColorDrawable()
         val (modifiedIcon, extraIconData) = collection.modifyIcon(icon, background)
         collection.addApp(
             context,

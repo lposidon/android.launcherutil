@@ -107,8 +107,9 @@ object IconTheming {
                                 val key = x.getAttributeValue(null, "component")
                                 val value = x.getAttributeValue(null, "drawable")
                                 val background = x.getAttributeValue(null, "background")
-                                if (key != null && value != null) {
-                                    info.iconResourceNames[key] = value
+                                if (key != null) {
+                                    if (value != null)
+                                        info.iconResourceNames[key] = value
                                     if (background != null)
                                         info.backgrounds[key] = background
                                 }
@@ -117,8 +118,9 @@ object IconTheming {
                                 val key = x.getAttributeValue(null, "component")
                                 val value = x.getAttributeValue(null, "prefix")
                                 val background = x.getAttributeValue(null, "background")
-                                if (key != null && value != null) {
-                                    info.calendarPrefixes[key] = value
+                                if (key != null) {
+                                    if (value != null)
+                                        info.calendarPrefixes[key] = value
                                     if (background != null)
                                         info.backgrounds[key] = background
                                 }
