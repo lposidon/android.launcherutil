@@ -1,4 +1,4 @@
-package io.posidon.android.launcherutils
+package io.posidon.android.launcherutils.appLoading
 
 import android.content.Context
 import android.content.pm.LauncherActivityInfo
@@ -9,6 +9,7 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.UserHandle
 import android.os.UserManager
+import io.posidon.android.launcherutils.IconTheming
 import kotlin.concurrent.thread
 
 /**
@@ -54,7 +55,8 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
             var iconPackInfo: IconTheming.IconPackInfo? = null
             try {
                 val themeRes = packageManager.getResourcesForApplication(iconPackPackage)
-                iconPackInfo = IconTheming.getIconPackInfo(themeRes, iconPackPackage, uniformOptions)
+                iconPackInfo =
+                    IconTheming.getIconPackInfo(themeRes, iconPackPackage, uniformOptions)
             } catch (e: Exception) { e.printStackTrace() }
             iconPackInfo
         }

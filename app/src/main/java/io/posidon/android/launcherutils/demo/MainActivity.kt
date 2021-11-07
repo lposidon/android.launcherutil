@@ -6,9 +6,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.posidon.android.launcherutils.AppLoader
-import io.posidon.android.launcherutils.IconConfig
 import io.posidon.android.launcherutils.IconTheming
+import io.posidon.android.launcherutils.appLoading.AppLoader
+import io.posidon.android.launcherutils.appLoading.IconConfig
 
 class MainActivity : AppCompatActivity() {
 

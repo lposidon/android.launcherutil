@@ -3,7 +3,7 @@ package io.posidon.android.launcherutils.demo
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.UserHandle
-import io.posidon.android.launcherutils.AppLoader
+import io.posidon.android.launcherutils.appLoading.AppLoader
 import io.posidon.android.launcherutils.appLoading.SimpleAppCollection
 
 class AppCollection(size: Int) : SimpleAppCollection() {

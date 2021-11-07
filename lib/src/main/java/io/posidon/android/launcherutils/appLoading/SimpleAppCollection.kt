@@ -3,13 +3,12 @@ package io.posidon.android.launcherutils.appLoading
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.UserHandle
-import io.posidon.android.launcherutils.AppLoader
 
 abstract class SimpleAppCollection : AppLoader.AppCollection<Nothing?> {
 
     override fun finalize(context: Context) {}
 
-    fun modifyIcon(
+    open fun modifyIcon(
         icon: Drawable,
         packageName: String,
         name: String,
