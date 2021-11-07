@@ -89,8 +89,22 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
 
     interface AppCollection <EXTRA_ICON_DATA> {
         fun finalize(context: Context)
-        fun addApp(context: Context, packageName: String, name: String, profile: UserHandle, label: String, icon: Drawable, extra: ExtraAppInfo<EXTRA_ICON_DATA>)
-        fun modifyIcon(icon: Drawable, expandableBackground: Drawable?): Pair<Drawable, EXTRA_ICON_DATA>
+        fun addApp(
+            context: Context,
+            packageName: String,
+            name: String,
+            profile: UserHandle,
+            label: String,
+            icon: Drawable,
+            extra: ExtraAppInfo<EXTRA_ICON_DATA>
+        )
+        fun modifyIcon(
+            icon: Drawable,
+            packageName: String,
+            name: String,
+            profile: UserHandle,
+            expandableBackground: Drawable?
+        ): Pair<Drawable, EXTRA_ICON_DATA>
     }
 
     private fun addApp(
@@ -186,7 +200,13 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
             }
             icon
         } ?: appListItem.getIcon(iconConfig.density) ?: ColorDrawable()
-        val (modifiedIcon, extraIconData) = collection.modifyIcon(icon, background)
+        val (modifiedIcon, extraIconData) = collection.modifyIcon(icon, packageName, name, profile, background)
+        val extra = ExtraAppInfo(
+            banner = appListItem.applicationInfo.loadBanner(context.packageManager),
+            logo = appListItem.applicationInfo.loadLogo(context.packageManager),
+            background = background,
+            extraIconData = extraIconData,
+        )
         collection.addApp(
             context,
             packageName,
@@ -194,12 +214,7 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
             profile,
             context.packageManager.getUserBadgedLabel(label, profile).toString(),
             context.packageManager.getUserBadgedIcon(modifiedIcon, profile),
-            ExtraAppInfo(
-                banner = appListItem.applicationInfo.loadBanner(context.packageManager),
-                logo = appListItem.applicationInfo.loadLogo(context.packageManager),
-                background = background,
-                extraIconData = extraIconData,
-            )
+            extra
         )
     }
 

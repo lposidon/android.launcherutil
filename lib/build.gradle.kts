@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
-
 plugins {
     id("com.android.library")
     id("kotlin-android")
@@ -25,8 +23,7 @@ android {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:${getKotlinPluginVersion()}")
-    implementation("androidx.annotation:annotation:1.2.0")
+    implementation("androidx.annotation:annotation:1.3.0")
 }
 
 afterEvaluate {

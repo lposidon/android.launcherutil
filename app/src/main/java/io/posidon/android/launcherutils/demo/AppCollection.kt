@@ -4,8 +4,9 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.UserHandle
 import io.posidon.android.launcherutils.AppLoader
+import io.posidon.android.launcherutils.appLoading.SimpleAppCollection
 
-class AppCollection(size: Int) : AppLoader.AppCollection<Nothing?> {
+class AppCollection(size: Int) : SimpleAppCollection() {
 
     val list = ArrayList<App>(size)
 
@@ -25,9 +26,5 @@ class AppCollection(size: Int) : AppLoader.AppCollection<Nothing?> {
         list.sortWith { o1, o2 ->
             o1.label.compareTo(o2.label, ignoreCase = true)
         }
-    }
-
-    override fun modifyIcon(icon: Drawable, expandableBackground: Drawable?): Pair<Drawable, Nothing?> {
-        return icon to null
     }
 }
