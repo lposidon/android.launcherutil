@@ -61,12 +61,12 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
             iconPackInfo
         }
 
-        val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
+        val userManager = context.getSystemService(UserManager::class.java)
 
         var appCount = 0
         val appLists = Array(userManager.userProfiles.size) {
             val profile = userManager.userProfiles[it]
-            val appList = (context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps).getActivityList(null, profile)
+            val appList = context.getSystemService(LauncherApps::class.java).getActivityList(null, profile)
             appCount += appList.size
             appList to profile
         }
@@ -74,6 +74,7 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
         val collection = collectionConstructor(appCount)
 
         for ((appList, profile) in appLists) {
+            val isUserRunning = userManager.isUserRunning(profile)
             for (i in appList.indices) addApp(
                 collection,
                 appList[i],
@@ -82,7 +83,8 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
                 p,
                 maskp,
                 context,
-                profile
+                profile,
+                isUserRunning
             )
         }
         collection.finalize(context)
@@ -118,6 +120,7 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
         maskp: Paint,
         context: Context,
         profile: UserHandle,
+        isUserRunning: Boolean,
     ) {
 
         val packageName = appListItem.applicationInfo.packageName
@@ -208,6 +211,7 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
             logo = appListItem.applicationInfo.loadLogo(context.packageManager),
             background = background,
             extraIconData = extraIconData,
+            isUserRunning = isUserRunning,
         )
         collection.addApp(
             context,
@@ -225,5 +229,6 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
         val logo: Drawable?,
         val background: Drawable?,
         val extraIconData: EXTRA_ICON_DATA,
+        val isUserRunning: Boolean,
     )
 }

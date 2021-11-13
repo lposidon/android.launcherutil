@@ -1,6 +1,8 @@
 package io.posidon.android.launcherutils.demo
 
 import android.content.Context
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.drawable.Drawable
 import android.os.UserHandle
 import io.posidon.android.launcherutils.appLoading.AppLoader
@@ -19,6 +21,9 @@ class AppCollection(size: Int) : SimpleAppCollection() {
         icon: Drawable,
         extra: AppLoader.ExtraAppInfo<Nothing?>
     ) {
+        if (!extra.isUserRunning) {
+            icon.convertToGrayscale()
+        }
         list.add(App(packageName, name, profile, label, icon))
     }
 
@@ -26,5 +31,11 @@ class AppCollection(size: Int) : SimpleAppCollection() {
         list.sortWith { o1, o2 ->
             o1.label.compareTo(o2.label, ignoreCase = true)
         }
+    }
+
+    fun Drawable.convertToGrayscale() {
+        colorFilter = ColorMatrixColorFilter(ColorMatrix().apply {
+            setSaturation(0f)
+        })
     }
 }
