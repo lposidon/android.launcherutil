@@ -3,8 +3,7 @@ package io.posidon.android.launcherutils.appLoading
 import android.content.Context
 import android.content.pm.LauncherActivityInfo
 import android.content.pm.LauncherApps
-import android.graphics.*
-import android.graphics.drawable.BitmapDrawable
+import android.graphics.BitmapFactory
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.UserHandle
@@ -38,13 +37,6 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
         onEnd: (apps: APPCollection) -> Unit
     ) {
 
-        val p = Paint(Paint.FILTER_BITMAP_FLAG).apply {
-            isAntiAlias = true
-        }
-        val maskp = Paint(Paint.FILTER_BITMAP_FLAG).apply {
-            isAntiAlias = true
-            xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
-        }
         val uniformOptions = BitmapFactory.Options().apply {
             inScaled = false
         }
@@ -55,8 +47,7 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
             var iconPackInfo: IconTheming.IconPackInfo? = null
             try {
                 val themeRes = packageManager.getResourcesForApplication(iconPackPackage)
-                iconPackInfo =
-                    IconTheming.getIconPackInfo(themeRes, iconPackPackage, uniformOptions)
+                iconPackInfo = IconTheming.getIconPackInfo(themeRes, iconPackPackage, uniformOptions)
             } catch (e: Exception) { e.printStackTrace() }
             iconPackInfo
         }
@@ -80,8 +71,6 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
                 appList[i],
                 iconPacks,
                 iconConfig,
-                p,
-                maskp,
                 context,
                 profile,
                 isUserRunning
@@ -109,6 +98,12 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
             profile: UserHandle,
             expandableBackground: Drawable?
         ): Pair<Drawable, EXTRA_ICON_DATA>
+        fun themeIcon(
+            icon: Drawable,
+            iconConfig: IconConfig,
+            iconPackInfo: IconTheming.IconPackInfo,
+            context: Context
+        ): Drawable
     }
 
     private fun addApp(
@@ -116,8 +111,6 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
         appListItem: LauncherActivityInfo,
         iconPacks: List<IconTheming.IconPackInfo>,
         iconConfig: IconConfig,
-        p: Paint,
-        maskp: Paint,
         context: Context,
         profile: UserHandle,
         isUserRunning: Boolean,
@@ -134,74 +127,13 @@ class AppLoader <EXTRA_ICON_DATA, APPCollection : AppLoader.AppCollection<EXTRA_
         var background: Drawable? = null
 
         val icon: Drawable = iconPacks.firstNotNullOfOrNull { iconPackInfo ->
-            iconPackInfo.getDrawable(appListItem.applicationInfo.packageName, appListItem.name)?.also {
+            iconPackInfo.getDrawable(appListItem.applicationInfo.packageName, appListItem.name, iconConfig.density)?.also {
                 background = iconPackInfo.getBackground(appListItem.applicationInfo.packageName, appListItem.name)
             }
         } ?: iconPacks.firstNotNullOfOrNull { iconPackInfo ->
             var icon = appListItem.getIcon(iconConfig.density)
             if (iconPackInfo.areUnthemedIconsChanged) {
-                try {
-                    var orig = Bitmap.createBitmap(
-                        icon.intrinsicWidth,
-                        icon.intrinsicHeight,
-                        Bitmap.Config.ARGB_8888
-                    )
-                    icon.setBounds(0, 0, icon.intrinsicWidth, icon.intrinsicHeight)
-                    icon.draw(Canvas(orig))
-                    val scaledBitmap =
-                        Bitmap.createBitmap(iconConfig.size, iconConfig.size, Bitmap.Config.ARGB_8888)
-                    Canvas(scaledBitmap).run {
-                        if (iconPackInfo.back != null) {
-                            val b = iconPackInfo.back!!
-                            drawBitmap(
-                                b,
-                                Rect(0, 0, b.width, b.height),
-                                Rect(0, 0, iconConfig.size, iconConfig.size),
-                                p
-                            )
-                        }
-                        val scaledOrig =
-                            Bitmap.createBitmap(iconConfig.size, iconConfig.size, Bitmap.Config.ARGB_8888)
-                        Canvas(scaledOrig).run {
-                            val s = (iconConfig.size * iconPackInfo.scaleFactor).toInt()
-                            orig = Bitmap.createScaledBitmap(orig, s, s, true)
-                            drawBitmap(
-                                orig,
-                                scaledOrig.width - orig.width / 2f - scaledOrig.width / 2f,
-                                scaledOrig.width - orig.width / 2f - scaledOrig.width / 2f,
-                                p
-                            )
-                            if (iconPackInfo.mask != null) {
-                                val b = iconPackInfo.mask!!
-                                drawBitmap(
-                                    b,
-                                    Rect(0, 0, b.width, b.height),
-                                    Rect(0, 0, iconConfig.size, iconConfig.size),
-                                    maskp
-                                )
-                            }
-                        }
-                        drawBitmap(
-                            Bitmap.createScaledBitmap(scaledOrig, iconConfig.size, iconConfig.size, true),
-                            0f,
-                            0f,
-                            p
-                        )
-                        if (iconPackInfo.front != null) {
-                            val b = iconPackInfo.front!!
-                            drawBitmap(
-                                b,
-                                Rect(0, 0, b.width, b.height),
-                                Rect(0, 0, iconConfig.size, iconConfig.size),
-                                p
-                            )
-                        }
-                        scaledOrig.recycle()
-                    }
-                    icon = BitmapDrawable(context.resources, scaledBitmap)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+                icon = collection.themeIcon(icon, iconConfig, iconPackInfo, context)
             }
             icon
         } ?: appListItem.getIcon(iconConfig.density) ?: ColorDrawable()

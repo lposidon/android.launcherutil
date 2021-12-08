@@ -41,7 +41,7 @@ object IconTheming {
         var front: Bitmap? = null
         var areUnthemedIconsChanged: Boolean = false
 
-        fun getDrawable(packageName: String, name: String): Drawable? {
+        fun getDrawable(packageName: String, name: String, density: Int): Drawable? {
             val key = "ComponentInfo{$packageName/$name}"
             val iconResource = calendarPrefixes[key]
                 ?.let { it + Calendar.getInstance()[Calendar.DAY_OF_MONTH] }
@@ -54,7 +54,7 @@ object IconTheming {
             )
             if (drawableRes == 0) return null
             return try {
-                res.getDrawable(drawableRes, null)
+                res.getDrawableForDensity(drawableRes, density, null)
             } catch (e: Resources.NotFoundException) {
                 null
             }
