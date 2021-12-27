@@ -5,6 +5,8 @@ import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.drawable.Drawable
 import android.os.UserHandle
+import io.posidon.android.computable.Computable
+import io.posidon.android.computable.copy
 import io.posidon.android.launcherutils.appLoading.AppLoader
 import io.posidon.android.launcherutils.appLoading.SimpleAppCollection
 
@@ -18,12 +20,12 @@ class AppCollection(size: Int) : SimpleAppCollection() {
         name: String,
         profile: UserHandle,
         label: String,
-        icon: Drawable,
-        extra: AppLoader.ExtraAppInfo<Nothing?>
+        icon: Computable<Drawable>,
+        extra: AppLoader.ExtraAppInfo<Nothing?>,
     ) {
-        if (!extra.isUserRunning) {
-            icon.convertToGrayscale()
-        }
+        val icon = if (!extra.isUserRunning) {
+            icon.copy { it.convertToGrayscale(); it }
+        } else icon
         list.add(App(packageName, name, profile, label, icon))
     }
 

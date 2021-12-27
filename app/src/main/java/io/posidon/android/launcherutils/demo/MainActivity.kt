@@ -26,8 +26,8 @@ class MainActivity : AppCompatActivity() {
             setOnClickListener {
                 val iconPacks = IconTheming.getAvailableIconPacks(packageManager)
                 AlertDialog.Builder(context)
-                    .setSingleChoiceItems(iconPacks.map { it.loadLabel(packageManager) }.toTypedArray(), 0) { d, i ->
-                        loadApps(iconPacks[i].activityInfo.packageName)
+                    .setSingleChoiceItems(iconPacks.mapTo(ArrayList()) { it.loadLabel(packageManager) }.apply { add(0, "System") }.toTypedArray(), 0) { d, i ->
+                        loadApps(if (i == 0) null else iconPacks[i - 1].activityInfo.packageName)
                         d.dismiss()
                     }
                     .show()

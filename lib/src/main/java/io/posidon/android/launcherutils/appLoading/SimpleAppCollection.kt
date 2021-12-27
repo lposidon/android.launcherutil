@@ -1,6 +1,7 @@
 package io.posidon.android.launcherutils.appLoading
 
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -40,9 +41,8 @@ abstract class SimpleAppCollection : AppLoader.AppCollection<Nothing?> {
 
     override fun themeIcon(
         icon: Drawable,
-        iconConfig: IconConfig,
-        iconPackInfo: IconTheming.IconPackInfo,
-        context: Context
+        iconPackInfo: IconTheming.IconGenerationInfo,
+        resources: Resources
     ): Drawable {
         var icon1 = icon
         try {
@@ -54,56 +54,65 @@ abstract class SimpleAppCollection : AppLoader.AppCollection<Nothing?> {
             icon1.setBounds(0, 0, icon1.intrinsicWidth, icon1.intrinsicHeight)
             icon1.draw(Canvas(orig))
             val scaledBitmap =
-                Bitmap.createBitmap(iconConfig.size, iconConfig.size, Bitmap.Config.ARGB_8888)
+                Bitmap.createBitmap(iconPackInfo.size, iconPackInfo.size, Bitmap.Config.ARGB_8888)
             Canvas(scaledBitmap).run {
-                if (iconPackInfo.back != null) {
-                    val b = iconPackInfo.back!!
+                val uniformOptions = BitmapFactory.Options().apply {
+                    inScaled = false
+                }
+                val back = iconPackInfo.getBackBitmap(uniformOptions)
+                if (back != null) {
                     drawBitmap(
-                        b,
-                        Rect(0, 0, b.width, b.height),
-                        Rect(0, 0, iconConfig.size, iconConfig.size),
+                        back,
+                        Rect(0, 0, back.width, back.height),
+                        Rect(0, 0, iconPackInfo.size, iconPackInfo.size),
                         p
                     )
+                    back.recycle()
                 }
                 val scaledOrig =
-                    Bitmap.createBitmap(iconConfig.size, iconConfig.size, Bitmap.Config.ARGB_8888)
+                    Bitmap.createBitmap(iconPackInfo.size, iconPackInfo.size, Bitmap.Config.ARGB_8888)
                 Canvas(scaledOrig).run {
-                    val s = (iconConfig.size * iconPackInfo.scaleFactor).toInt()
+                    val s = (iconPackInfo.size * iconPackInfo.scaleFactor).toInt()
+                    val oldOrig = orig
                     orig = Bitmap.createScaledBitmap(orig, s, s, true)
+                    oldOrig.recycle()
                     drawBitmap(
                         orig,
                         scaledOrig.width - orig.width / 2f - scaledOrig.width / 2f,
                         scaledOrig.width - orig.width / 2f - scaledOrig.width / 2f,
                         p
                     )
-                    if (iconPackInfo.mask != null) {
-                        val b = iconPackInfo.mask!!
+                    val mask = iconPackInfo.getMaskBitmap(uniformOptions)
+                    if (mask != null) {
                         drawBitmap(
-                            b,
-                            Rect(0, 0, b.width, b.height),
-                            Rect(0, 0, iconConfig.size, iconConfig.size),
+                            mask,
+                            Rect(0, 0, mask.width, mask.height),
+                            Rect(0, 0, iconPackInfo.size, iconPackInfo.size),
                             maskp
                         )
+                        mask.recycle()
                     }
                 }
                 drawBitmap(
-                    Bitmap.createScaledBitmap(scaledOrig, iconConfig.size, iconConfig.size, true),
+                    Bitmap.createScaledBitmap(scaledOrig, iconPackInfo.size, iconPackInfo.size, true),
                     0f,
                     0f,
                     p
                 )
-                if (iconPackInfo.front != null) {
-                    val b = iconPackInfo.front!!
+                val front = iconPackInfo.getFrontBitmap(uniformOptions)
+                if (front != null) {
                     drawBitmap(
-                        b,
-                        Rect(0, 0, b.width, b.height),
-                        Rect(0, 0, iconConfig.size, iconConfig.size),
+                        front,
+                        Rect(0, 0, front.width, front.height),
+                        Rect(0, 0, iconPackInfo.size, iconPackInfo.size),
                         p
                     )
+                    front.recycle()
                 }
+                orig.recycle()
                 scaledOrig.recycle()
             }
-            icon1 = BitmapDrawable(context.resources, scaledBitmap)
+            icon1 = BitmapDrawable(resources, scaledBitmap)
         } catch (e: Exception) {
             e.printStackTrace()
         }

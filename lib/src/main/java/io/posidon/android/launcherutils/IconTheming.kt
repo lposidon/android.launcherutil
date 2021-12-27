@@ -30,28 +30,39 @@ object IconTheming {
 
     class IconPackInfo(
         val res: Resources,
-        val iconPackPackageName: String
+        val iconPackPackageName: String,
     ) {
-        var scaleFactor = 1f
         val iconResourceNames = HashMap<String, String>()
         val calendarPrefixes = HashMap<String, String>()
         val backgrounds = HashMap<String, String>()
-        var back: Bitmap? = null
-        var mask: Bitmap? = null
-        var front: Bitmap? = null
-        var areUnthemedIconsChanged: Boolean = false
 
-        fun getDrawable(packageName: String, name: String, density: Int): Drawable? {
+        val iconModificationInfo = IconGenerationInfo(res)
+
+        fun getDrawableResource(packageName: String, name: String): Int {
             val key = "ComponentInfo{$packageName/$name}"
             val iconResource = calendarPrefixes[key]
                 ?.let { it + Calendar.getInstance()[Calendar.DAY_OF_MONTH] }
                 ?: iconResourceNames[key]
-                ?: return null
-            val drawableRes = res.getIdentifier(
+                ?: return 0
+            return res.getIdentifier(
                 iconResource,
                 "drawable",
                 iconPackPackageName
             )
+        }
+
+        fun getBackgroundResource(packageName: String, name: String): Int {
+            val key = "ComponentInfo{$packageName/$name}"
+            val background = backgrounds[key] ?: return 0
+            return res.getIdentifier(
+                background,
+                "drawable",
+                iconPackPackageName
+            )
+        }
+
+        fun getDrawable(packageName: String, name: String, density: Int): Drawable? {
+            val drawableRes = getDrawableResource(packageName, name)
             if (drawableRes == 0) return null
             return try {
                 res.getDrawableForDensity(drawableRes, density, null)
@@ -60,28 +71,49 @@ object IconTheming {
             }
         }
 
-        fun getBackground(packageName: String, name: String): Drawable? {
-            val key = "ComponentInfo{$packageName/$name}"
-            val background = backgrounds[key] ?: return null
-
-            val backgroundRes = res.getIdentifier(
-                background,
-                "drawable",
-                iconPackPackageName
-            )
+        fun getBackground(packageName: String, name: String, density: Int): Drawable? {
+            val backgroundRes = getBackgroundResource(packageName, name)
             if (backgroundRes == 0) return null
             return try {
-                res.getDrawable(backgroundRes, null)
+                res.getDrawableForDensity(backgroundRes, density, null)
             } catch (e: Resources.NotFoundException) {
                 null
             }
         }
     }
 
+    class IconGenerationInfo(
+        val res: Resources,
+    ) {
+        var size = 0
+            internal set
+
+        var scaleFactor = 1f
+            internal set
+
+        var areUnthemedIconsChanged: Boolean = false
+            internal set
+
+        internal var back: Int = 0
+        internal var mask: Int = 0
+        internal var front: Int = 0
+
+        fun getBackBitmap(
+            uniformOptions: BitmapFactory.Options
+        ): Bitmap? = BitmapFactory.decodeResource(res, back, uniformOptions)
+
+        fun getMaskBitmap(
+            uniformOptions: BitmapFactory.Options
+        ): Bitmap? = BitmapFactory.decodeResource(res, mask, uniformOptions)
+
+        fun getFrontBitmap(
+            uniformOptions: BitmapFactory.Options
+        ): Bitmap? = BitmapFactory.decodeResource(res, front, uniformOptions)
+    }
+
     fun getIconPackInfo(
         res: Resources,
         iconPackPackageName: String,
-        uniformOptions: BitmapFactory.Options
     ): IconPackInfo {
         val info = IconPackInfo(res, iconPackPackageName)
         try {
@@ -101,7 +133,7 @@ object IconTheming {
                     try {
                         when (x.name) {
                             "scale" -> {
-                                info.scaleFactor = x.getAttributeValue(0).toFloat()
+                                info.iconModificationInfo.scaleFactor = x.getAttributeValue(0).toFloat()
                             }
                             "item" -> {
                                 val key = x.getAttributeValue(null, "component")
@@ -125,25 +157,22 @@ object IconTheming {
                                         info.backgrounds[key] = background
                                 }
                             }
-                            "iconback" -> info.back = loadIconMod(
+                            "iconback" -> info.iconModificationInfo.back = loadIconMod(
                                 x.getAttributeValue(0),
                                 res,
                                 iconPackPackageName,
-                                uniformOptions,
                                 info
                             )
-                            "iconmask" -> info.mask = loadIconMod(
+                            "iconmask" -> info.iconModificationInfo.mask = loadIconMod(
                                 x.getAttributeValue(0),
                                 res,
                                 iconPackPackageName,
-                                uniformOptions,
                                 info
                             )
-                            "iconupon" -> info.front = loadIconMod(
+                            "iconupon" -> info.iconModificationInfo.front = loadIconMod(
                                 x.getAttributeValue(0),
                                 res,
                                 iconPackPackageName,
-                                uniformOptions,
                                 info
                             )
                         }
@@ -155,17 +184,16 @@ object IconTheming {
         return info
     }
 
-    private fun loadIconMod(name: String, res: Resources, iconPackPackageName: String, uniformOptions: BitmapFactory.Options, info: IconPackInfo): Bitmap? {
+    private fun loadIconMod(name: String, res: Resources, iconPackPackageName: String, info: IconPackInfo): Int {
         val i = res.getIdentifier(
             name,
             "drawable",
             iconPackPackageName
         )
         if (i != 0) {
-            info.areUnthemedIconsChanged = true
-            return BitmapFactory.decodeResource(res, i, uniformOptions)
+            info.iconModificationInfo.areUnthemedIconsChanged = true
         }
-        return null
+        return i
     }
 
     fun getResourceNames(res: Resources, iconPack: String?): ArrayList<String> {

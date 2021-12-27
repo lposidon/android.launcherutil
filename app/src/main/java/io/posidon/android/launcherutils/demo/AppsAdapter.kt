@@ -3,6 +3,7 @@ package io.posidon.android.launcherutils.demo
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import io.posidon.android.computable.compute
 
 class AppsAdapter : RecyclerView.Adapter<AppViewHolder>() {
 
@@ -16,8 +17,19 @@ class AppsAdapter : RecyclerView.Adapter<AppViewHolder>() {
 
     override fun onBindViewHolder(holder: AppViewHolder, i: Int) {
         val app = list[i]
-        holder.icon.setImageDrawable(app.icon)
+        holder.icon.setImageDrawable(null)
+        app.icon.compute {
+            holder.icon.post {
+                holder.icon.setImageDrawable(it)
+            }
+        }
         holder.label.text = app.label
+    }
+
+    override fun onViewRecycled(holder: AppViewHolder) {
+        val i = holder.adapterPosition
+        if (i != -1)
+            list[i].icon.offload()
     }
 
     fun update(list: List<App>) {
