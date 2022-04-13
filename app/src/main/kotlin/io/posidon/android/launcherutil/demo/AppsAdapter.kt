@@ -1,11 +1,11 @@
-package io.posidon.android.launcherutils.demo
+package io.posidon.android.launcherutil.demo
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import io.posidon.android.computable.compute
+import java.util.concurrent.Future
 
-class AppsAdapter : RecyclerView.Adapter<AppViewHolder>() {
+class AppsAdapter(val mainActivity: MainActivity) : RecyclerView.Adapter<AppViewHolder>() {
 
     private var list = emptyList<App>()
 
@@ -15,21 +15,29 @@ class AppsAdapter : RecyclerView.Adapter<AppViewHolder>() {
         return AppViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.app_item, parent, false))
     }
 
+    private var workers = HashMap<Int, Future<Unit>>()
+
     override fun onBindViewHolder(holder: AppViewHolder, i: Int) {
+        val img = holder.icon
+        workers[i]?.cancel(true)
+        img.setImageDrawable(null)
         val app = list[i]
-        holder.icon.setImageDrawable(null)
-        app.icon.compute {
-            holder.icon.post {
-                holder.icon.setImageDrawable(it)
+        workers[i] = mainActivity.iconLoader.load(
+            holder.itemView.context,
+            app.packageName,
+            app.name,
+            app.profile,
+        ) {
+            img.post {
+                img.setImageDrawable(it.icon)
             }
         }
         holder.label.text = app.label
     }
 
     override fun onViewRecycled(holder: AppViewHolder) {
-        val i = holder.adapterPosition
-        if (i != -1)
-            list[i].icon.offload()
+        workers[holder.adapterPosition]?.cancel(true)
+        holder.icon.setImageDrawable(null)
     }
 
     fun update(list: List<App>) {

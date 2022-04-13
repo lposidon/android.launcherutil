@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    compileSdk = 31
+    compileSdk = 32
 
     defaultConfig {
         minSdk = 26
-        targetSdk = 31
+        targetSdk = 32
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -31,8 +31,8 @@ afterEvaluate {
         publications {
             create<MavenPublication>("maven") {
                 groupId = "io.posidon"
-                artifactId = "android.launcherUtils"
-                version = "1.0.0"
+                artifactId = "android.launcherutil"
+                version = "22.0"
                 from(components["release"])
             }
         }

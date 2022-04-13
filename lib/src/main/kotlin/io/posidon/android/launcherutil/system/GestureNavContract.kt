@@ -1,4 +1,4 @@
-package io.posidon.android.launcherutils.system
+package io.posidon.android.launcherutil.system
 
 import android.annotation.TargetApi
 import android.content.ComponentName

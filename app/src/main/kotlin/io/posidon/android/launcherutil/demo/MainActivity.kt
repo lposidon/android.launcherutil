@@ -1,19 +1,23 @@
-package io.posidon.android.launcherutils.demo
+package io.posidon.android.launcherutil.demo
 
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.posidon.android.launcherutils.IconTheming
-import io.posidon.android.launcherutils.appLoading.AppLoader
-import io.posidon.android.launcherutils.appLoading.IconConfig
+import io.posidon.android.launcherutil.IconTheming
+import io.posidon.android.launcherutil.Launcher
+import io.posidon.android.launcherutil.isUserRunning
+import io.posidon.android.launcherutil.loader.AppIconLoader
 
 class MainActivity : AppCompatActivity() {
 
-    val appsAdapter = AppsAdapter()
-    val appLoader = AppLoader(::AppCollection)
+    val appsAdapter = AppsAdapter(this)
+    lateinit var iconLoader: AppIconLoader<Nothing?>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,16 +41,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun loadApps(iconPack: String? = null) {
-        val iconConfig = IconConfig(
+        iconLoader = Launcher.iconLoader(
+            this,
             size = (resources.displayMetrics.density * 128f).toInt(),
             density = resources.configuration.densityDpi,
             packPackages = iconPack?.let { arrayOf(it) } ?: emptyArray(),
-        )
-
-        appLoader.async(this, iconConfig) {
-            runOnUiThread {
-                appsAdapter.update(it.list)
-            }
+        ) { _, _, profile, icon ->
+            if (!isUserRunning(profile)) {
+                icon?.convertToGrayscale() to null
+            } else icon to null
         }
+        val list = ArrayList<App>()
+        Launcher.appLoader.loadAsync(
+            this,
+            onEnd = {
+                list.sortWith { o1, o2 ->
+                    o1.label.compareTo(o2.label, ignoreCase = true)
+                }
+                runOnUiThread {
+                    appsAdapter.update(list)
+                }
+            },
+            forEachApp = {
+                list += App(
+                    it.packageName,
+                    it.name,
+                    it.profile,
+                    it.getBadgedLabel(this)
+                )
+            }
+        )
+    }
+
+    private fun Drawable.convertToGrayscale(): Drawable = apply {
+        colorFilter = ColorMatrixColorFilter(ColorMatrix().apply {
+            setSaturation(0f)
+        })
     }
 }

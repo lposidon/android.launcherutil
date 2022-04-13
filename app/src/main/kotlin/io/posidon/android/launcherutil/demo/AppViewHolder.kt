@@ -1,4 +1,4 @@
-package io.posidon.android.launcherutils.demo
+package io.posidon.android.launcherutil.demo
 
 import android.view.View
 import android.widget.ImageView

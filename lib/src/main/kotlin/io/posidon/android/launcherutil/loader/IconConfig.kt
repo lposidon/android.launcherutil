@@ -1,4 +1,4 @@
-package io.posidon.android.launcherutils.appLoading
+package io.posidon.android.launcherutil.loader
 
 class IconConfig(
     val size: Int,

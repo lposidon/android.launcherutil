@@ -1,4 +1,4 @@
-package io.posidon.android.launcherutils.liveWallpaper
+package io.posidon.android.launcherutil.liveWallpaper
 
 import android.content.Context
 import android.content.Intent

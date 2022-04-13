@@ -6,14 +6,14 @@ plugins {
 }
 
 android {
-    compileSdk = 31
+    compileSdk = 32
 
     defaultConfig {
-        applicationId = "io.posidon.android.launcherutils.demo"
+        applicationId = "io.posidon.android.launcherutil.demo"
         minSdk = 26
-        targetSdk = 31
+        targetSdk = 32
         versionCode = 1
-        versionName = "1.0"
+        versionName = "22.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -31,7 +31,7 @@ dependencies {
     implementation("io.posidon:android.convenienceLib:master-SNAPSHOT")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:${getKotlinPluginVersion()}")
     implementation("androidx.core:core-ktx:1.7.0")
-    implementation("com.google.android.material:material:1.4.0")
+    implementation("com.google.android.material:material:1.5.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")

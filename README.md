@@ -1,26 +1,64 @@
-# Launcher utils
-A library for android launcher creation (very much in alpha stage)
+# launcherutil
+
+A library for android launcher creation (in alpha stage)
 
 ## Features
 - App loading
-- Kustom variables
 - Icon-related utilities
 - Send signals to live wallpaper
+- Kustom variables
 
-## How to use
-Make sure you have the jitpack.io repo added in your project
-```kotlin
-allprojects {
+## Installation
+Add the dependency to your `build.gradle(.kts)` file:
+<table>
+  <thead>
+    <tr>
+      <th>Kotlin</th>
+      <th>Groovy</th>
+    </tr>
+  </thead>
+  <tr>
+    <td>
+<pre lang="kotlin">dependencies {
+    // ...
+    implementation("io.posidon:android.launcherutil:22.0")
+}</pre>
+    </td>
+    <td>
+<pre lang="groovy">dependencies {
+    // ...
+    implementation 'io.posidon:android.launcherutil:22.0'
+}</pre>
+    </td>
+  </tr>
+</table>
+
+And also make sure that the `jitpack.io` repository is included
+<table>
+  <thead>
+    <tr>
+      <th>Kotlin</th>
+      <th>Groovy</th>
+    </tr>
+  </thead>
+  <tr>
+    <td>
+<pre lang="kotlin">allprojects {
     repositories {
+        // ...
         maven {
             url = uri("https://jitpack.io")
         }
     }
-}
-```
-Add the dependency
-```kotlin
-dependencies {
-    implementation("io.posidon:android.launcherUtils:${VERSION}")
-}
-```
+}</pre>
+    </td>
+    <td>
+<pre lang="groovy">allprojects {
+    repositories {
+        // ...
+        maven { url 'https://jitpack.io' }
+    }
+}</pre>
+    </td>
+  </tr>
+</table>

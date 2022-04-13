@@ -1,3 +1,3 @@
-rootProject.name = "LauncherUtils"
+rootProject.name = "launcherutil"
 include(":lib")
 include(":app")

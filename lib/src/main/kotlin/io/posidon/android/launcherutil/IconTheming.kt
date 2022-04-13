@@ -1,4 +1,4 @@
-package io.posidon.android.launcherutils
+package io.posidon.android.launcherutil
 
 import android.content.Intent
 import android.content.pm.PackageManager

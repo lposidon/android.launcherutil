@@ -1,4 +1,4 @@
-package io.posidon.android.launcherutils.liveWallpaper
+package io.posidon.android.launcherutil.liveWallpaper
 
 import android.app.WallpaperManager
 import android.view.View
