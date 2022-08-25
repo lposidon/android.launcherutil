@@ -48,7 +48,7 @@ object Launcher {
     inline fun getDefaultLauncher(packageManager: PackageManager): String? {
         val intent = Intent(Intent.ACTION_MAIN)
         intent.addCategory(Intent.CATEGORY_HOME)
-        return packageManager.resolveActivity(intent, 0)?.resolvePackageName
+        return packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)?.resolvePackageName
     }
 }
 

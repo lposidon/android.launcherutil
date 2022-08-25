@@ -20,10 +20,11 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
+    namespace = "io.posidon.android.launcherutil"
 }
 
 dependencies {
-    implementation("androidx.annotation:annotation:1.3.0")
+    implementation("androidx.annotation:annotation:1.4.0")
 }
 
 afterEvaluate {
